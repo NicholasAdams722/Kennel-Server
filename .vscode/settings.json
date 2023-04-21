@@ -1,9 +1,6 @@
 {
     
-        "python.formatting.autopep8Path": "/Users/nss_student/.pyenv/shims/autopep8",
-        "python.linting.pylintEnabled": true,
-        "python.analysis.diagnosticSeverityOverrides": {
-          "reportGeneralTypeIssues": "none"
-        }
-     
+  "python.formatting.autopep8Path": "/Users/nss_student/.pyenv/shims/autopep8",
+  "python.linting.pylintEnabled": true,
+  
 }
