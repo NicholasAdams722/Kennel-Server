@@ -79,32 +79,33 @@ def get_all_animals():
 
 # Function with a single parameter
 def get_single_animal(id):
-    # Variable to hold the found animal, if it exists
-    requested_animal = None
-    
-    #customer = get_single_customer(id)
-    # Iterate the ANIMALS list above. Very similar to the
-    # for..of loops you used in JavaScript.
-    for animal in ANIMALS:
-        # Dictionaries in Python use [] notation to find a key
-        # instead of the dot notation that JavaScript used.
-        if animal["id"] == id:
-            requested_animal = animal
-            
-            added_location = get_single_location(requested_animal["locationId"]) 
-            requested_animal["location"] = added_location
+    with sqlite3.connect("./kennel.sqlite3") as conn:
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
 
-            requested_animal.pop("locationId", None)
-            
-            matching_customer = get_single_customer(requested_animal["customerId"])
-            requested_animal["customer"] = matching_customer
+        # Use a ? parameter to inject a variable's value
+        # into the SQL statement.
+        db_cursor.execute("""
+        SELECT
+            a.id,
+            a.name,
+            a.breed,
+            a.status,
+            a.location_id,
+            a.customer_id
+        FROM animal a
+        WHERE a.id = ?
+        """, ( id, ))
 
-        #! new customer property is returning null on PostMan
-        #Create a new key on an animal dictionary 
-            #requested_animal["customer"] = customer
+        # Load the single result into memory
+        data = db_cursor.fetchone()
 
+        # Create an animal instance from the current row
+        animal = Animal(data['id'], data['name'], data['breed'],
+                            data['status'], data['location_id'],
+                            data['customer_id'])
 
-    return requested_animal
+        return animal.__dict__
 
 def create_animal(animal):
     # Get the id value of the last animal in the list

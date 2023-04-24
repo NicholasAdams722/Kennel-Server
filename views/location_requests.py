@@ -17,7 +17,7 @@ LOCATIONS = [
 #implement two functions in this module similar to animal_requests.py
 
 def get_all_locations():
-    """Function allows you to query the database for all locations, convert each row into an Animal instance, convert the list to JSON, and respond to the client request """
+    """Function allows you to query the database for all locations, convert each row into an customer instance, convert the list to JSON, and respond to the client request """
     # Open a connection to the database
     with sqlite3.connect("./kennel.sqlite3") as conn:
 
@@ -30,15 +30,12 @@ def get_all_locations():
         SELECT
             a.id,
             a.name,
-            a.breed,
-            a.status,
-            a.location_id,
-            a.customer_id
-        FROM animal a
+            a.address
+        FROM location a
         """)
 
-        # Initialize an empty list to hold all animal representations
-        animals = []
+        # Initialize an empty list to hold all location representations
+        locations = []
 
         # Convert rows of data into a Python list
         dataset = db_cursor.fetchall()
@@ -46,34 +43,40 @@ def get_all_locations():
         # Iterate list of data returned from database
         for row in dataset:
 
-            # Create an animal instance from the current row.
+            # Create an location instance from the current row.
             # Note that the database fields are specified in
             # exact order of the parameters defined in the
-            # Animal class above.
-            animal = Location(row['id'], row['name'], row['breed'],
-                            row['status'], row['location_id'],
-                            row['customer_id'])
+            # location class above.
+            location = Location(row['id'], row['name'], row['address'])
 
-            animals.append(animal.__dict__)
+            locations.append(location.__dict__)
 
-    return animals
-    return LOCATIONS
+    return locations
     
 def get_single_location(id):
-    """Gets a single location"""
-    # Variable to hold the found single location, if it exists
-    requested_location = None
+    with sqlite3.connect("./kennel.sqlite3") as conn:
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
 
-    # Iterate the LOCATIONS list above. Very similar to the
-    # for..of loops you used in JavaScript.
-    for location in LOCATIONS:
-        # Dictionaries in Python use [] notation to find a key
-        # instead of the dot notation that JavaScript used.
-        if location["id"] == id:
-            requested_location = location
+        # Use a ? parameter to inject a variable's value
+        # into the SQL statement.
+        db_cursor.execute("""
+        SELECT
+            a.id,
+            a.name,
+            a.address
+        FROM location a
+        WHERE a.id = ?
+        """, ( id, ))
 
-    return requested_location
+        # Load the single result into memory
+        data = db_cursor.fetchone()
 
+        # Create an location instance from the current row
+        location = Location(data['id'], data['name'], data['address'])
+
+        return location.__dict__
+    
 def create_location(location):
     # Get the id value of the last animal in the list
     max_id = LOCATIONS[-1]["id"]
