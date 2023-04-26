@@ -1,5 +1,4 @@
 import sqlite3
-import json
 from models import Employee
 
 EMPLOYEES = [
@@ -8,6 +7,32 @@ EMPLOYEES = [
         "name": "Jenna Solis"
     }
 ]
+
+def get_employees_by_location(location_id):
+
+    with sqlite3.connect("./kennel.sqlite3") as conn:
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
+
+        # Write the SQL query to get the information you want
+        db_cursor.execute("""
+        select
+            a.id,
+            a.name,
+            a.address,
+            a.location_Id
+        from Employee a
+        WHERE a.location_Id = ?
+        """, (location_id, ))
+
+        employees = []
+        dataset = db_cursor.fetchall()
+
+        for row in dataset:
+            employee = Employee(row['id'], row['name'], row['address'], row['location_id'])
+            employees.append(employee.__dict__)
+
+    return employees
 
 def get_all_employees():
     """Function allows you to query the database for all employees, convert each row into an customer instance, convert the list to JSON, and respond to the client request """
@@ -41,7 +66,7 @@ def get_all_employees():
             # Note that the database fields are specified in
             # exact order of the parameters defined in the
             # employee class above.
-            employee = Employee(row['id'], row['name'])
+            employee = Employee(row['id'], row['name'], row['address'], row['location_id'])
 
             employees.append(employee.__dict__)
 
@@ -68,7 +93,7 @@ def get_single_employee(id):
         data = db_cursor.fetchone()
 
         # Create an employee instance from the current row
-        employee = Employee(data['id'], data['name'])
+        employee = Employee(data['id'], data['name'], data['address'], data['location_id'])
 
         return employee.__dict__
 

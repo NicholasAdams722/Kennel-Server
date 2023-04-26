@@ -1,7 +1,5 @@
-from .location_requests import get_single_location
-from .customer_requests import get_single_customer
+
 import sqlite3
-import json
 from models import Animal
 
 #Do I need to store these imports in a new variable to use in this module?
@@ -34,6 +32,64 @@ ANIMALS = [
     }
 ]
 
+def get_animals_by_status(status):
+
+    with sqlite3.connect("./kennel.sqlite3") as conn:
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
+
+        # Write the SQL query to get the information you want
+        db_cursor.execute("""
+        select
+            a.id,
+            a.name,
+            a.status,
+            a.breed,
+            a.customer_Id,
+            a.location_Id
+        from Animal a
+        WHERE a.status = ?
+        """, ( status, ))
+
+        animals = []
+        dataset = db_cursor.fetchall()
+
+        for row in dataset:
+            animal = Animal(row['id'], row['name'], row['status'], row['breed'], row['customer_id'], row['location_id'])
+
+            animals.append(animal.__dict__)
+
+    return animals
+
+def get_animals_by_location(location_id):
+
+    with sqlite3.connect("./kennel.sqlite3") as conn:
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
+
+        # Write the SQL query to get the information you want
+        db_cursor.execute("""
+        select
+            a.id,
+            a.name,
+            a.status,
+            a.breed,
+            a.customer_Id,
+            a.location_Id
+        from Animal a
+        WHERE a.location_Id = ?
+        """, ( location_id, ))
+
+        animals = []
+        dataset = db_cursor.fetchall()
+
+        for row in dataset:
+            animal = Animal(row['id'], row['name'], row['status'], row['breed'], row['customer_id'], row['location_id'])
+
+            animals.append(animal.__dict__)
+
+    return animals
+
 
 def get_all_animals():
     """Function allows you to query the database for all animals, convert each row into an Animal instance, convert the list to JSON, and respond to the client request """
@@ -49,10 +105,10 @@ def get_all_animals():
         SELECT
             a.id,
             a.name,
-            a.breed,
             a.status,
-            a.location_id,
-            a.customer_id
+            a.breed,
+            a.customer_Id,
+            a.location_Id
         FROM animal a
         """)
 
@@ -69,9 +125,7 @@ def get_all_animals():
             # Note that the database fields are specified in
             # exact order of the parameters defined in the
             # Animal class above.
-            animal = Animal(row['id'], row['name'], row['breed'],
-                            row['status'], row['location_id'],
-                            row['customer_id'])
+            animal = Animal(row['id'], row['name'], row['status'], row['breed'], row['customer_id'], row['location_id'])
 
             animals.append(animal.__dict__)
 
@@ -89,10 +143,10 @@ def get_single_animal(id):
         SELECT
             a.id,
             a.name,
-            a.breed,
             a.status,
-            a.location_id,
-            a.customer_id
+            a.breed,
+            a.customer_Id,
+            a.location_Id
         FROM animal a
         WHERE a.id = ?
         """, ( id, ))
@@ -101,9 +155,7 @@ def get_single_animal(id):
         data = db_cursor.fetchone()
 
         # Create an animal instance from the current row
-        animal = Animal(data['id'], data['name'], data['breed'],
-                            data['status'], data['location_id'],
-                            data['customer_id'])
+        animal = Animal(data['id'], data['name'], data['status'], data['breed'], data['customer_id'], data['location_id'])
 
         return animal.__dict__
 
